@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bankroll Apuestas - Tracker Profesional</title>
+    <style>
+        :root {
+            --primary-color: #1e3a8a;
+            --secondary-color: #3b82f6;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --border-color: #334155;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #1a2847 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        header { text-align: center; margin-bottom: 30px; }
+
+        header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, var(--secondary-color), #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        header p { color: var(--text-secondary); font-size: 1.1em; }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 15px 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .tab-btn:hover { color: var(--secondary-color); }
+
+        .tab-btn.active {
+            color: var(--secondary-color);
+            border-bottom-color: var(--secondary-color);
+        }
+
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-card .value {
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .stat-card.success .value { color: var(--success-color); }
+        .stat-card.danger .value { color: var(--danger-color); }
+
+        .input-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .input-section h3 {
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group { display: flex; flex-direction: column; }
+
+        .form-group label {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .chart-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            height: 300px;
+        }
+
+        .chart-container h4 {
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .chart-placeholder {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            border: 1px dashed var(--border-color);
+            border-radius: 8px;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .day-table {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        thead { background: var(--primary-color); }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            color: var(--text-primary);
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        tr:hover { background: rgba(59, 130, 246, 0.1); }
+        tr.win-row { background: rgba(16, 185, 129, 0.05); }
+        tr.loss-row { background: rgba(239, 68, 68, 0.05); }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .badge.win {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success-color);
+        }
+
+        .badge.loss {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger-color);
+        }
+
+        .number-positive { color: var(--success-color); font-weight: 600; }
+        .number-negative { color: var(--danger-color); font-weight: 600; }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .metric-card h4 {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .metric-value {
+            font-size: 2.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-dark);
+            border-radius: 10px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary-color), var(--success-color));
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn-export { background: var(--success-color); }
+        .btn-export:hover { background: #059669; }
+
+        .btn-reset { background: var(--warning-color); }
+        .btn-reset:hover { background: #d97706; }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .message.success {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success-color);
+            border: 1px solid var(--success-color);
+        }
+
+        .message.error {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.85em;
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .btn-small:hover { background: #2563eb; }
+
+        .btn-delete { background: var(--danger-color); }
+        .btn-delete:hover { background: #dc2626; }
+
+        @media (max-width: 768px) {
+            header h1 { font-size: 1.8em; }
+            .tabs { flex-direction: column; }
+            .tab-btn { width: 100%; text-align: left; }
+            .form-row { grid-template-columns: 1fr; }
+            .charts-grid { grid-template-columns: 1fr; }
+            .metrics-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Bankroll Apuestas Tracker</h1>
+            <p>Sistema Profesional de Seguimiento - Diciembre 2025</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab(0)">📊 Inicio</button>
+            <button class="tab-btn" onclick="switchTab(1)">📅 Control Diario</button>
+            <button class="tab-btn" onclick="switchTab(2)">📈 Métricas</button>
+            <button class="tab-btn" onclick="switchTab(3)">📋 Exportar Detalles</button>
+        </div>
+
+        <!-- TAB 1: INICIO -->
+        <div class="tab-content active">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                <div class="stat-card">
+                    <h3>💰 Bankroll Inicial</h3>
+                    <div class="value">$<span id="initialBankroll">1,000.00</span></div>
+                </div>
+                <div class="stat-card success" id="currentBankrollCard">
+                    <h3>💵 Bankroll Actual</h3>
+                    <div class="value">$<span id="currentBankroll">1,000.00</span></div>
+                </div>
+                <div class="stat-card">
+                    <h3>🎯 Meta Ganancia</h3>
+                    <div class="value">$<span id="goalAmount">500.00</span></div>
+                </div>
+                <div class="stat-card">
+                    <h3>📍 Progreso Meta</h3>
+                    <div class="value"><span id="progressPercentage">0</span>%</div>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <h3>📝 Registrar Nueva Apuesta</h3>
+                
+                <div id="successMessage" class="message success">
+                    ✅ Apuesta registrada exitosamente
+                </div>
+                <div id="errorMessage" class="message error">
+                    ❌ Por favor completa todos los campos correctamente
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="betDay">📅 Día (1-31)</label>
+                        <input type="number" id="betDay" min="1" max="31" placeholder="Ej: 5">
+                    </div>
+                    <div class="form-group">
+                        <label for="betNumber">🎲 Apuesta (1-4)</label>
+                        <input type="number" id="betNumber" min="1" max="4" placeholder="Ej: 1">
+                    </div>
+                    <div class="form-group">
+                        <label for="betAmount">💸 Monto Invertido</label>
+                        <input type="number" id="betAmount" step="0.01" placeholder="Ej: 100.50">
+                    </div>
+                    <div class="form-group">
+                        <label for="returnAmount">💰 Retorno Recibido</label>
+                        <input type="number" id="returnAmount" step="0.01" placeholder="Ej: 150.00">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <button class="btn" onclick="addBet()">✅ Registrar Apuesta</button>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h4>📈 Evolución Bankroll</h4>
+                    <div class="chart-placeholder">
+                        Gráfica simplificada. Revisa detalle en la pestaña "Control Diario".
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <h4>🏆 Win Rate Diario</h4>
+                    <div class="chart-placeholder">
+                        Win rate visible por día en la tabla "Control Diario".
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: CONTROL DIARIO -->
+        <div class="tab-content">
+            <div class="day-table">
+                <h3>📅 Control Día a Día</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Día</th>
+                            <th>Apuestas</th>
+                            <th>Monto</th>
+                            <th>Retorno</th>
+                            <th>Ganancia/Pérdida</th>
+                            <th>Resultado</th>
+                            <th>ROI %</th>
+                            <th>Bankroll</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dailyTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 3: MÉTRICAS -->
+        <div class="tab-content">
+            <div class="button-group">
+                <button class="btn btn-export" onclick="exportToCSV()">📥 Exportar CSV</button>
+                <button class="btn btn-reset" onclick="confirmReset()">🔄 Resetear Mes</button>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <h4>📊 Total Apuestas</h4>
+                    <div class="metric-value"><span id="totalBets">0</span></div>
+                </div>
+
+                <div class="metric-card">
+                    <h4>🏆 Apuestas Ganadas</h4>
+                    <div class="metric-value number-positive"><span id="wonBets">0</span></div>
+                </div>
+
+                <div class="metric-card">
+                    <h4>❌ Apuestas Perdidas</h4>
+                    <div class="metric-value number-negative"><span id="lostBets">0</span></div>
+                </div>
+
+                <div class="metric-card">
+                    <h4>🎯 Efectividad Mensual</h4>
+                    <div class="metric-value"><span id="monthlyEffectiveness">0</span>%</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="effectivenessBar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <h4>📈 ROI Mensual</h4>
+                    <div class="metric-value" id="monthlyROI">0%</div>
+                </div>
+
+                <div class="metric-card">
+                    <h4>💵 Ganancia/Pérdida Total</h4>
+                    <div class="metric-value" id="totalPnL">$0.00</div>
+                </div>
+
+                <div class="metric-card">
+                    <h4>💰 Total Invertido</h4>
+                    <div class="metric-value"><span id="totalInvested">$0.00</span></div>
+                </div>
+
+                <div class="metric-card">
+                    <h4>📉 Máximo Drawdown</h4>
+                    <div class="metric-value number-negative"><span id="maxDrawdown">$0.00</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: EXPORTAR DETALLES -->
+        <div class="tab-content">
+            <div class="input-section">
+                <h3>📋 Registrar Detalles Completos de Apuestas</h3>
+                
+                <div id="detailSuccessMessage" class="message success">
+                    ✅ Detalle registrado exitosamente
+                </div>
+                <div id="detailErrorMessage" class="message error">
+                    ❌ Por favor completa todos los campos
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="detailDay">📅 Día</label>
+                        <input type="number" id="detailDay" min="1" max="31" placeholder="Ej: 5">
+                    </div>
+                    <div class="form-group">
+                        <label for="detailBetNum">🎲 Apuesta (1-4)</label>
+                        <input type="number" id="detailBetNum" min="1" max="4" placeholder="Ej: 1">
+                    </div>
+                    <div class="form-group">
+                        <label for="detailDescription">📍 En qué apostaste</label>
+                        <input type="text" id="detailDescription" placeholder="Ej: NBA Lakers vs Celtics">
+                    </div>
+                    <div class="form-group">
+                        <label for="detailOdds">📊 Cuota/Odds</label>
+                        <input type="number" id="detailOdds" step="0.01" placeholder="Ej: 1.95">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="detailAmount">💸 Monto Apostado</label>
+                        <input type="number" id="detailAmount" step="0.01" placeholder="Ej: 100.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="detailResult">✅ Resultado</label>
+                        <select id="detailResult">
+                            <option value="">Selecciona...</option>
+                            <option value="Ganada">✅ Ganada</option>
+                            <option value="Perdida">❌ Perdida</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="detailReturn">💰 Retorno Total</label>
+                        <input type="number" id="detailReturn" step="0.01" placeholder="Ej: 195.00">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <button class="btn" onclick="addBetDetail()">✅ Registrar Detalle</button>
+                </div>
+            </div>
+
+            <div class="day-table">
+                <h3>📊 Tabla de Apuestas Detalladas</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Día</th>
+                            <th>Apuesta</th>
+                            <th>Descripción</th>
+                            <th>Cuota</th>
+                            <th>Monto</th>
+                            <th>Resultado</th>
+                            <th>Retorno</th>
+                            <th>Ganancia/Pérdida</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailTableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-export" onclick="exportDetailsToCSV()">📥 Exportar Detalles CSV</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var INITIAL_BANKROLL = 1000;
+        var GOAL_AMOUNT = 500;
+        var DAYS = 31;
+        var BETS_PER_DAY = 4;
+
+        // Datos solo en memoria (se pierden al cerrar pestaña)
+        var data = {
+            bankroll: INITIAL_BANKROLL,
+            bets: {},
+            details: {}
+        };
+
+        function initData() {
+            updateAllMetrics();
+            updateDailyTable();
+            updateDetailTable();
+        }
+
+        function addBet() {
+            var day = parseInt(document.getElementById('betDay').value, 10);
+            var betNum = parseInt(document.getElementById('betNumber').value, 10);
+            var amount = parseFloat(document.getElementById('betAmount').value);
+            var returnVal = parseFloat(document.getElementById('returnAmount').value);
+
+            var errorMsg = document.getElementById('errorMessage');
+            var successMsg = document.getElementById('successMessage');
+
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+
+            if (isNaN(day) || day < 1 || day > 31 ||
+                isNaN(betNum) || betNum < 1 || betNum > 4) {
+                errorMsg.textContent = '❌ Día (1-31) y Apuesta (1-4) son obligatorios.';
+                errorMsg.style.display = 'block';
+                setTimeout(function(){ errorMsg.style.display = 'none'; }, 3000);
+                return;
+            }
+
+            if (isNaN(amount) || amount <= 0 || isNaN(returnVal)) {
+                errorMsg.textContent = '❌ Monto y Retorno deben ser números válidos. Si perdiste, pon Retorno = 0.';
+                errorMsg.style.display = 'block';
+                setTimeout(function(){ errorMsg.style.display = 'none'; }, 3000);
+                return;
+            }
+
+            var key = day + '-' + betNum;
+            data.bets[key] = {
+                day: day,
+                betNum: betNum,
+                amount: amount,
+                "return": returnVal
+            };
+
+            updateAllMetrics();
+            updateDailyTable();
+
+            document.getElementById('betDay').value = '';
+            document.getElementById('betNumber').value = '';
+            document.getElementById('betAmount').value = '';
+            document.getElementById('returnAmount').value = '';
+
+            successMsg.textContent = '✅ Apuesta registrada exitosamente';
+            successMsg.style.display = 'block';
+            setTimeout(function(){ successMsg.style.display = 'none'; }, 3000);
+        }
+
+        function addBetDetail() {
+            var day = parseInt(document.getElementById('detailDay').value, 10);
+            var betNum = parseInt(document.getElementById('detailBetNum').value, 10);
+            var description = document.getElementById('detailDescription').value;
+            var odds = parseFloat(document.getElementById('detailOdds').value);
+            var amount = parseFloat(document.getElementById('detailAmount').value);
+            var result = document.getElementById('detailResult').value;
+            var returnVal = parseFloat(document.getElementById('detailReturn').value);
+
+            var errorMsg = document.getElementById('detailErrorMessage');
+            var successMsg = document.getElementById('detailSuccessMessage');
+
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+
+            if (isNaN(day) || day < 1 || day > 31 ||
+                isNaN(betNum) || betNum < 1 || betNum > 4 ||
+                !description || isNaN(odds) || odds <= 1 ||
+                isNaN(amount) || amount <= 0 ||
+                !result || isNaN(returnVal)) {
+                errorMsg.textContent = '❌ Revisa día, apuesta, descripción, cuota, monto, resultado y retorno.';
+                errorMsg.style.display = 'block';
+                setTimeout(function(){ errorMsg.style.display = 'none'; }, 3000);
+                return;
+            }
+
+            var key = day + '-' + betNum;
+            data.details[key] = {
+                day: day,
+                betNum: betNum,
+                description: description,
+                odds: odds,
+                amount: amount,
+                result: result,
+                returnVal: returnVal
+            };
+
+            updateDetailTable();
+
+            document.getElementById('detailDay').value = '';
+            document.getElementById('detailBetNum').value = '';
+            document.getElementById('detailDescription').value = '';
+            document.getElementById('detailOdds').value = '';
+            document.getElementById('detailAmount').value = '';
+            document.getElementById('detailResult').value = '';
+            document.getElementById('detailReturn').value = '';
+
+            successMsg.textContent = '✅ Detalle registrado exitosamente';
+            successMsg.style.display = 'block';
+            setTimeout(function(){ successMsg.style.display = 'none'; }, 3000);
+        }
+
+        function calculateMetrics() {
+            var totalInvested = 0;
+            var totalReturn = 0;
+            var wonBets = 0;
+            var totalBets = 0;
+            var maxDrawdown = 0;
+            var currentBankroll = INITIAL_BANKROLL;
+            var dailyResults = {};
+
+            var day, bet;
+            for (day = 1; day <= DAYS; day++) {
+                var dayInvested = 0;
+                var dayReturn = 0;
+
+                for (bet = 1; bet <= BETS_PER_DAY; bet++) {
+                    var key = day + '-' + bet;
+                    if (data.bets[key]) {
+                        var betData = data.bets[key];
+                        totalBets++;
+                        dayInvested += betData.amount;
+                        dayReturn += betData["return"];
+                        totalInvested += betData.amount;
+                        totalReturn += betData["return"];
+
+                        if (betData["return"] > betData.amount) {
+                            wonBets++;
+                        }
+                    }
+                }
+
+                if (dayInvested > 0) {
+                    var dayPnL = dayReturn - dayInvested;
+                    currentBankroll += dayPnL;
+                    dailyResults[day] = {
+                        invested: dayInvested,
+                        "return": dayReturn,
+                        pnl: dayPnL,
+                        bankroll: currentBankroll
+                    };
+
+                    if (dayPnL < 0 && Math.abs(dayPnL) > maxDrawdown) {
+                        maxDrawdown = Math.abs(dayPnL);
+                    }
+                }
+            }
+
+            var totalPnL = totalReturn - totalInvested;
+            var roi = totalInvested > 0 ? (totalPnL / totalInvested) * 100 : 0;
+            var effectiveness = totalBets > 0 ? (wonBets / totalBets) * 100 : 0;
+            var goalProgress = totalPnL >= GOAL_AMOUNT ? 100 : (totalPnL / GOAL_AMOUNT) * 100;
+
+            return {
+                totalBets: totalBets,
+                wonBets: wonBets,
+                totalInvested: totalInvested,
+                totalReturn: totalReturn,
+                totalPnL: totalPnL,
+                currentBankroll: currentBankroll,
+                roi: roi,
+                effectiveness: effectiveness,
+                maxDrawdown: maxDrawdown,
+                goalProgress: goalProgress,
+                dailyResults: dailyResults
+            };
+        }
+
+        function updateAllMetrics() {
+            var metrics = calculateMetrics();
+
+            document.getElementById('currentBankroll').textContent = metrics.currentBankroll.toFixed(2);
+            document.getElementById('progressPercentage').textContent = Math.min(100, Math.round(metrics.goalProgress));
+            document.getElementById('totalBets').textContent = metrics.totalBets;
+            document.getElementById('wonBets').textContent = metrics.wonBets;
+            document.getElementById('lostBets').textContent = metrics.totalBets - metrics.wonBets;
+            document.getElementById('monthlyEffectiveness').textContent = metrics.effectiveness.toFixed(1);
+            document.getElementById('effectivenessBar').style.width = Math.min(100, metrics.effectiveness) + '%';
+            document.getElementById('monthlyROI').textContent = metrics.roi.toFixed(2) + '%';
+
+            var pnlElement = document.getElementById('totalPnL');
+            pnlElement.textContent = (metrics.totalPnL >= 0 ? '+' : '') + metrics.totalPnL.toFixed(2);
+            pnlElement.style.color = metrics.totalPnL >= 0 ? 'var(--success-color)' : 'var(--danger-color)';
+
+            document.getElementById('totalInvested').textContent = '$' + metrics.totalInvested.toFixed(2);
+            document.getElementById('maxDrawdown').textContent = '$' + metrics.maxDrawdown.toFixed(2);
+
+            var currentBankrollCard = document.getElementById('currentBankrollCard');
+            if (metrics.currentBankroll < INITIAL_BANKROLL) {
+                currentBankrollCard.classList.remove('success');
+                currentBankrollCard.classList.add('danger');
+            } else {
+                currentBankrollCard.classList.remove('danger');
+                currentBankrollCard.classList.add('success');
+            }
+        }
+
+        function updateDailyTable() {
+            var metrics = calculateMetrics();
+            var tbody = document.getElementById('dailyTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            var day;
+            for (day = 1; day <= DAYS; day++) {
+                var dayData = metrics.dailyResults[day];
+                if (!dayData) continue;
+
+                var winCount = 0;
+                for (var i = 1; i <= BETS_PER_DAY; i++) {
+                    var key = day + '-' + i;
+                    if (data.bets[key] && data.bets[key]["return"] > data.bets[key].amount) {
+                        winCount++;
+                    }
+                }
+
+                var roi = (dayData.pnl / dayData.invested) * 100;
+
+                var row = document.createElement('tr');
+                row.className = dayData.pnl >= 0 ? 'win-row' : 'loss-row';
+                row.innerHTML =
+                    '<td><strong>Día ' + day + '</strong></td>' +
+                    '<td>' + winCount + '/' + BETS_PER_DAY + '</td>' +
+                    '<td>$' + dayData.invested.toFixed(2) + '</td>' +
+                    '<td>$' + dayData["return"].toFixed(2) + '</td>' +
+                    '<td class="' + (dayData.pnl >= 0 ? 'number-positive' : 'number-negative') + '">$' + dayData.pnl.toFixed(2) + '</td>' +
+                    '<td><span class="badge ' + (dayData.pnl >= 0 ? 'win' : 'loss') + '">' + (dayData.pnl >= 0 ? '✅ GANANCIA' : '❌ PÉRDIDA') + '</span></td>' +
+                    '<td>' + roi.toFixed(2) + '%</td>' +
+                    '<td>$' + dayData.bankroll.toFixed(2) + '</td>';
+
+                tbody.appendChild(row);
+            }
+        }
+
+        function updateDetailTable() {
+            var tbody = document.getElementById('detailTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            var keys = Object.keys(data.details).sort();
+            for (var i = 0; i < keys.length; i++) {
+                var key = keys[i];
+                var detail = data.details[key];
+                var pnl = detail.returnVal - detail.amount;
+
+                var row = document.createElement('tr');
+                row.className = pnl >= 0 ? 'win-row' : 'loss-row';
+                row.innerHTML =
+                    '<td><strong>Día ' + detail.day + '</strong></td>' +
+                    '<td>' + detail.betNum + '</td>' +
+                    '<td>' + detail.description + '</td>' +
+                    '<td>' + detail.odds.toFixed(2) + '</td>' +
+                    '<td>$' + detail.amount.toFixed(2) + '</td>' +
+                    '<td><span class="badge ' + (detail.result === 'Ganada' ? 'win' : 'loss') + '">' + detail.result + '</span></td>' +
+                    '<td>$' + detail.returnVal.toFixed(2) + '</td>' +
+                    '<td class="' + (pnl >= 0 ? 'number-positive' : 'number-negative') + '">$' + pnl.toFixed(2) + '</td>' +
+                    '<td><button class="btn-small btn-delete" onclick="deleteDetail(\'' + key + '\')">🗑️ Borrar</button></td>';
+
+                tbody.appendChild(row);
+            }
+        }
+
+        function deleteDetail(key) {
+            if (confirm('¿Estás seguro que deseas eliminar este detalle?')) {
+                delete data.details[key];
+                updateDetailTable();
+            }
+        }
+
+        function switchTab(index) {
+            var buttons = document.querySelectorAll('.tab-btn');
+            var contents = document.querySelectorAll('.tab-content');
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].classList.toggle('active', i === index);
+            }
+            for (var j = 0; j < contents.length; j++) {
+                contents[j].classList.toggle('active', j === index);
+            }
+        }
+
+        function exportToCSV() {
+            var metrics = calculateMetrics();
+            var csv = 'Bankroll Apuestas - Diciembre 2025\n\n';
+            csv += 'RESUMEN\n';
+            csv += 'Total Apuestas,' + metrics.totalBets + '\n';
+            csv += 'Ganadas,' + metrics.wonBets + '\n';
+            csv += 'Perdidas,' + (metrics.totalBets - metrics.wonBets) + '\n';
+            csv += 'Efectividad,' + metrics.effectiveness.toFixed(2) + '%\n';
+            csv += 'ROI,' + metrics.roi.toFixed(2) + '%\n';
+            csv += 'Total Invertido,' + metrics.totalInvested.toFixed(2) + '\n';
+            csv += 'P/L,' + metrics.totalPnL.toFixed(2) + '\n\n';
+
+            csv += 'DIARIOS\n';
+            csv += 'Dia,Ganadas,Invertido,Retorno,P/L,ROI,Bankroll\n';
+            
+            for (var day = 1; day <= DAYS; day++) {
+                if (metrics.dailyResults[day]) {
+                    var d = metrics.dailyResults[day];
+                    var winCount = 0;
+                    for (var i = 1; i <= BETS_PER_DAY; i++) {
+                        var key = day + '-' + i;
+                        if (data.bets[key] && data.bets[key]["return"] > data.bets[key].amount) {
+                            winCount++;
+                        }
+                    }
+                    var roi = (d.pnl / d.invested) * 100;
+                    csv += day + ',' + winCount + '/' + BETS_PER_DAY + ',' +
+                        d.invested.toFixed(2) + ',' + d["return"].toFixed(2) + ',' +
+                        d.pnl.toFixed(2) + ',' + roi.toFixed(2) + ',' + d.bankroll.toFixed(2) + '\n';
+                }
+            }
+
+            var blob = new Blob([csv], { type: 'text/csv' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'bankroll_diciembre.csv';
+            a.click();
+        }
+
+        function exportDetailsToCSV() {
+            var csv = 'Bankroll Apuestas - Detalles\n';
+            csv += 'Dia,Apuesta,Descripcion,Cuota,Monto,Resultado,Retorno,P/L\n';
+
+            var keys = Object.keys(data.details).sort();
+            for (var i = 0; i < keys.length; i++) {
+                var key = keys[i];
+                var d = data.details[key];
+                var pnl = d.returnVal - d.amount;
+                csv += d.day + ',' + d.betNum + ',' + d.description + ',' +
+                    d.odds.toFixed(2) + ',' + d.amount.toFixed(2) + ',' +
+                    d.result + ',' + d.returnVal.toFixed(2) + ',' + pnl.toFixed(2) + '\n';
+            }
+
+            var blob = new Blob([csv], { type: 'text/csv' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'bankroll_detalles.csv';
+            a.click();
+        }
+
+        function confirmReset() {
+            if (confirm('¿Estás seguro que deseas resetear TODOS los datos (de esta sesión)?')) {
+                data.bets = {};
+                data.details = {};
+                data.bankroll = INITIAL_BANKROLL;
+                updateAllMetrics();
+                updateDailyTable();
+                updateDetailTable();
+                alert('✅ Datos reseteados (solo esta sesión)');
+            }
+        }
+
+        window.addEventListener('load', initData);
+    </script>
+</body>
+</html>
